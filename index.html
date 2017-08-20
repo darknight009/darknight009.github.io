@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset = "utf-8"/>
+	<title>motion</title>
+	<link href="https://fonts.googleapis.com/css?family=Cabin+Sketch" rel="stylesheet">
+	<style >
+	@font-face {
+    font-family: 'new_font';
+    src: url('LCD_Solid.ttf'); 
+	}
+	@font-face {
+    font-family: 'distorted';
+    src: url('hacked-webfont.woff'); 
+	}
+</style>
+	<script>
+		window.onload = function()
+{
+	var canvas = document.createElement("canvas"),
+		c=canvas.getContext("2d"),
+		particles=[];
+
+	canvas.width=document.documentElement.clientWidth;
+	canvas.height=document.documentElement.clientHeight;
+	document.body.appendChild(canvas);
+
+	function graph(){
+		this.coordx=[40, 80, 120, 160, 200, 240];
+		this.coordy=[300, 350, 270, 330, 320, 320];
+	}
+	graph.prototype.plot=function(){
+		if(this.coordx[0]==-40)
+			{
+				this.coordx.shift();
+				this.coordx.push(240);
+				this.coordy.shift();
+				this.coordy.push(Math.floor(100*Math.random()+250));
+			}
+		for(var i=0; i<5; i++)
+		{
+			c.beginPath();
+			c.lineWidth=4;
+			c.moveTo(this.coordx[i], this.coordy[i]);
+			c.lineTo(this.coordx[i+1], this.coordy[i+1]);
+			c.stroke();
+			c.strokeStyle="rgba(0,184,0, 1)";
+			this.coordx[i]--;
+			if(i==4)this.coordx[5]--;
+		}
+
+
+		
+	}
+
+	function particle(){
+		this.x=(canvas.width)*Math.random();
+		this.y=(canvas.height)*Math.random();
+		this.radius=3*Math.random()+0.1;
+		this.speed=this.radius*8/5;
+	}
+
+	particle.prototype.reassign=function(){
+		this.y=canvas.height;
+		this.x=(canvas.width)*Math.random();
+		this.radius=5*Math.random()+0.1;
+		this.speed=this.radius*8/5;
+	}
+
+	particle.prototype.draw=function(){
+		this.y-=this.speed;
+		if(this.y<0) this.reassign();
+		c.shadowColor = "white";
+		c.shadowOffsetX = 1; 
+		c.shadowOffsetY = 1; 
+		c.shadowBlur = 5;
+		c.beginPath();
+      	c.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+      	c.fillStyle="white";
+        c.fill();
+	}
+
+	function param(){
+		this.velo=2000;
+		this.pressure=20;
+		this.temp=0;
+	}
+	param.prototype.disp=function(){
+		document.getElementsByClassName("params")[0].innerHTML="velocity: " + this.velo.toString() + "<br />" + "pressure: " + this.pressure.toString() + "<br />" + "temperature: "+this.temp.toString()+"<br />";
+	}
+
+	function word_particle(s){
+		this.s=s;
+		this.radius=1;
+		this.xoff=canvas.width/2;
+		this.yoff=canvas.height/2;
+		this.x;
+		this.y;
+		this.t=0;
+		this.sz=1;
+		this.word_len=0;
+		this.removed="";
+	}
+	word_particle.prototype.draw = function() {
+		this.sz=1;
+		this.radius=1;
+		this.t=this.word_len*0.1;
+		for (var i = 0, len = (this.s).length; i < len; i++) {
+			if(this.s.charAt(i)=="<") 
+			{
+				i+=5;
+				continue;
+			}
+			if(this.s.charAt(i)==" ")this.sz+=0.3;
+			this.t+=0.1;
+			this.t=this.t%(2*Math.PI);
+			this.radius+=0.5;
+			this.x = Math.floor(this.radius*(Math.sin(this.t)))+this.xoff;
+			this.y = Math.floor(this.radius*(Math.cos(this.t)))+this.yoff;
+			c.shadowColor = "white";
+			c.shadowOffsetX = 5; 
+			c.shadowOffsetY = 5; 
+			c.shadowBlur = 20;
+			c.fillStyle="white";
+			c.font = this.sz.toString() + "px distorted"; 
+			c.fillText(this.s.charAt(i),this.x,this.y);
+		}
+	}
+
+	word_particle.prototype.back_print = function(){
+		var temp=1;
+		for (var i = this.s.length-1; i >= 0; i--){
+			if(this.s.charAt(i)==" ")break;
+			temp++;
+		}
+		var word = this.s.slice(this.s.length-temp+1, this.s.length);
+		this.removed=word+" "+this.removed;
+		this.s = this.s.substring(0, this.s.length - temp);
+		this.word_len=this.removed.length;
+		document.getElementsByClassName("stack_print")[0].innerHTML=this.removed;
+	}
+	particle_num=100;
+
+	for(var i=0; i<particle_num;i++)	
+		{
+			var par = new particle();		
+			particles.push(par);
+		}
+
+	document.getElementsByClassName('bar-head')[0].style.marginLeft=(canvas.width-130).toString()+"px";
+
+	var barElement=[];			
+	for(var i=0;i<3;i++)
+		{
+			document.getElementsByClassName('bar')[i].style.marginLeft=(canvas.width-40*i-50).toString()+"px";
+			barElement.push(document.getElementsByClassName('bar')[i]);
+		}
+	var sim=0;
+	var grp=new graph();
+	var par= new param();
+	var p = new word_particle("<br /><h1  >Bhaavan Goel</h1 ><br />B.E Electronics and Communication, 2014-2018 <br />PEC University of Technology <br />bhaavangoel.beece14@pec.edu.in<br /> 9501180500<br /><br /><h3  >EDUCATION</h3 > B.Tech PEC University of Technology 6.65 2018<br /> 12th Govt. Model School -35, Chandigarh 92.4% 2014<br />10th KB DAV school, Chandigarh 9.8 2012<br /><br /><h3  >INTERNSHIP</h3 >Visiting researcher<br />Chair for Compiler Construction, CFAED, TU Dresden, Germany<br />• Assisted in the development of system level simulator for exploration of wildly heterogeneous systems.<br />• Improved the simulator in python by making it more robust and user friendly<br /><br /><h3  >TECHNICAL SKILLS</h3 >Programming: C, C++, Core Java, SQL, Python, MATLAB, Embedded C<br />Software Tools: Unity 3D, Proteus ISIS, Emu8086, Arduino, PSpice<br />Web Technologies: HTML, CSS, JavaScript<br /> <br /><h3  >PROJECTS</h3  ><h4  >Combat Robot</h4 >• Built a wireless combat robot with cutter as primary weapon and spear as secondary weapon<br />• Secured third position in RoboWars at PECfest2015.<br /><h4  >Attendance Record System</h4 >• Developed a JAVA application which prompts the user to mark their attendance according to their time table and notify them if attendance is short.<br />• It was selected for the main round of Hackathon at PECfest2015.<br /><h4  >Contraption</h4 >• Developed a chained mechanical system transferring energy from one step to another<br /> • Secured 2nd position in Contraption at PECfest2014.<br /><h4  >Hawk Eye</h4 >Developed a MATLAB code to track the trajectory of the ball and display a record of its statistically most likely path as a moving image.<br /><h4  >Brain Computer Interface</h4 >Worked in developing a Brain controlled robot which could perform motion in 2D space.<br /><br /><h3  >POSITIONS OF RESPONSIBILITIES</h3  ><h4  >Marketing Sub-Head</h4 >, Marketing Team, Organizing Committee, PECfest’15.<br /><h4  >Annual sports meet</h4 >Sub-Head, Sports Meet 2016 Organizing Committee. <br /><h4  >Publicity</h4 > Publicized PECfest’14 throughout the tricity. <br /><br /><h3  >SCHOLASTIC ACHIEVEMENTS</h3 ><br /> • Among the top 1% in JEE Mains Examination 2014 and ranked among top 8000 in JEE Advanced all over India<br /> • Qualified initial stage of the Regional Mathematics Olympiad<br /> • BITSAT 2014 Score -348/450 <br /> <br /><h3  >EXTRA CURRICULAR ACHIEVEMENTS</h3 ><h4  >Table Tennis</h4 > • Represented college at national level tournaments and won various inter college events.<br /> • Awarded Certificate of Appreciation by the director recognizing achievements in Table Tennis.<br /><h4  >LES AMIS</h4  > • Member of Les Amis, a non-profit organization registered under UT government, LES AMIS Chandigarh. <br /> • Part of Content Development and Marketing team for ‘Imaginarium’ - A fiction festival organized at tri-city level.<br /> <br />");
+
+		var barElement_col=[ "rgba(255, 0, 0,0.8)", "rgba(255, 153, 102,0.8)", "rgba(153, 255, 102,0.8)", "rgba(0,184,0, 0.8)"];
+		var grd=c.createRadialGradient(canvas.width/2,canvas.height,100,canvas.width/2,canvas.height,1000);
+		grd.addColorStop(0,"#1B2735");
+		grd.addColorStop(1,"#090A0F");
+		var count=0;
+		var refreshIntervalId=setInterval(function(){
+      	c.fillStyle=grd;
+      	c.fillRect(0, 0, canvas.width, canvas.height);
+        par.disp();
+        count++;
+        grp.plot();
+        for(var i=0; i<particle_num; i++) 
+				{
+					if(particles[i].x >= (p.xoff-p.radius) && particles[i].x <= (p.xoff+p.radius) && particles[i].y >= (p.yoff-p.radius) && particles[i].y <= (p.yoff+p.radius)) continue;
+					particles[i].draw();
+				}
+
+			if(p.s.length==0)
+				{
+					sim=1;
+					if(count%3==0)
+					{
+						if(par.velo>2000) par.velo-=Math.floor(10*Math.random())+75;
+						var pres=[Math.floor(10*Math.random()+85), Math.floor(10*Math.random()+0), Math.floor(10*Math.random()+45)];
+				        for(var i=0; i<3; i++)
+				        {
+					        barElement[i].innerHTML=pres[i].toString()+"%";
+					        barElement[i].style.paddingTop=pres[i].toString()+"px";
+					        barElement[i].style.height=(2*pres[i].toString())+"px";
+					        barElement[i].style.backgroundColor=barElement_col[pres[i]/25];
+				        }
+					}
+					
+				}
+
+			else{
+					p.draw();
+					p.back_print();
+					if(count%3==0)
+					{
+						if(par.velo<10000) par.velo+=Math.floor(20*Math.random())+15;
+				        var pres=[Math.floor(100*Math.random()), Math.floor(100*Math.random()), Math.floor(100*Math.random())];
+				        for(var i=0; i<3; i++)
+				        {
+					        barElement[i].innerHTML=pres[i].toString()+"%";
+					        barElement[i].style.paddingTop=pres[i].toString()+"px";
+					        barElement[i].style.height=(2*pres[i].toString())+"px";
+					        barElement[i].style.backgroundColor=barElement_col[pres[i]/25];
+				        }
+					}
+					
+				}
+			count=count%3;
+
+		},50);	
+		var boxElement=document.getElementsByClassName('stack_print')[0];
+		var speed_box=0;
+		var refreshboxElement=setInterval(function(){
+			par.velo+=Math.floor(20*Math.random())-10;
+			if(sim==1)
+			{
+				if(speed_box<=canvas.height-100) {
+					var speed_box1=speed_box;
+					boxElement.style.height=(100+speed_box1).toString()+"px";
+					speed_box+=10;
+				}
+			}	
+		},50);	
+};
+</script>
+</head>
+<body style="margin:0 ; overflow:hidden;">
+	<div class="stack_print" style="height:100px; bottom:0; position:absolute; width:100vw; background-color: rgba(0,204,255,0.2); white-space: pre-wrap; font-family: 'Cabin Sketch', cursive; text-align:center; -webkit-text-stroke: 0.7px black; font-size:120%; overflow-y: scroll;"></div>
+	<div class="params" style="height:70px; top:10px;  -webkit-text-stroke: 0.7px rgb(87, 198, 31); position:absolute; background-color: rgba(0,204,255,0.2); white-space: pre-wrap; font-family: 'Cabin Sketch', cursive; padding-left:10px; font-weight:bold; padding-right:10px"></div>
+	<div class="bar-head" style="margin-top:10px;  -webkit-text-stroke: 0.7px rgb(87, 198, 31); height:25px; width:110px; position:absolute; background-color: rgba(0,204,255,0.2); font-family: 'Cabin Sketch', cursive; text-align:center; font-weight:bold; font-size:120%">Frequency</div>
+	<div class="bar" style="margin-top:40px; height:200px; width:28px; position:absolute; background-color: rgba(0,184,0, 0.8); font-family: new_font; color:rgb(255,255,255); text-align:center"></div>
+	<div class="bar" style="margin-top:40px; height:200px; width:28px; position:absolute; background-color: rgba(0,184,0, 0.8); font-family: new_font; color:rgb(255,255,255); text-align:center"></div>
+	<div class="bar" style="margin-top:40px; height:200px; width:28px; position:absolute; background-color: rgba(0,184,0, 0.8); font-family: new_font; color:rgb(255,255,255); text-align:center"></div>
+	<div class="bar" style="margin-top:250px; height:110px; width:240px; position:absolute; background-color:rgba(0,204,255,0.2); font-family: 'Cabin Sketch', cursive;  -webkit-text-stroke: 0.7px rgba(0,0,0,0.8); text-align:left">-300 <br />-<br />-<br />-<br />-<br />-0</div>
+</body>
+</html>
+
+
